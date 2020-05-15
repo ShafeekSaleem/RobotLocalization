@@ -1,0 +1,3 @@
+<launch>
+	<node name="scan_values" pkg="main" type="scan.py" output="screen"/>
+</launch>

@@ -1,0 +1,42 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/gazebo_msgs_generate_messages_py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_ModelStates.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_ContactState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_ODEJointProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_LinkStates.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_ContactsState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_LinkState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_WorldState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_ODEPhysics.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/_ModelState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetJointProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SpawnModel.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetLinkProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetJointProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_JointRequest.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetJointTrajectory.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_ApplyJointEffort.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetLightProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_BodyRequest.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_DeleteModel.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_ApplyBodyWrench.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetLinkState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetModelState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetWorldProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetModelProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_DeleteLight.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetLinkProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetLinkState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetModelState.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetModelConfiguration.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetLightProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_SetPhysicsProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/_GetPhysicsProperties.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/msg/__init__.py"
+  "/home/dexter/my_workspace/devel/lib/python2.7/dist-packages/gazebo_msgs/srv/__init__.py"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang )
+  include(CMakeFiles/gazebo_msgs_generate_messages_py.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
