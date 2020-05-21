@@ -1,0 +1,3 @@
+<launch>
+	<node name="cv_bridge_demo" pkg="opencv_" type="opencv_visualizer.py" output="screen"/>
+</launch>
