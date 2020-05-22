@@ -7,23 +7,17 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import time
 
-rospy.init_node('cv_bridge_demo', anonymous=True)
+rospy.init_node('read_image', anonymous=True)
 
-# Print "Hello ROS!" to the Terminal and ROSLOG
-rospy.loginfo("Hello ROS!")
-
-
- # Initialize the CvBridge class
+# Initialize the CvBridge class
 bridge = CvBridge()
 
- # Define a function to show the image in an OpenCV Window
-def show_image(img):
-    
-    cv2.imshow("Image Window", img)
-    cv2.waitKey(3)
+index = 0
 
- # Define a callback for the Image message
+# Define a callback for the Image message
 def image_callback(img_msg):
+    global index
+    index += 1
      # log some info about the image topic
     rospy.loginfo(img_msg.header)
 
@@ -35,17 +29,14 @@ def image_callback(img_msg):
         rospy.logerr("CvBridge Error: {0}".format(e))
 
      # Show the converted image
-    #cv2.imwrite("/home/dexter/Pictures/image.jpg", frame )
-    #show_image(cv_image)
+    cv2.imwrite("/home/dexter/Pictures/image"+str(index)+".jpg", frame )
     rospy.loginfo(frame)
-    
-    cv2.imwrite("/home/dexter/Pictures/image.jpg", frame )
-    time.sleep(10)
+
+    time.sleep(15) #change this
     
 
 sub_image = rospy.Subscriber("/camera/rgb/image_raw", Image, image_callback)
 
-#cv2.namedWindow("Image Window", 1)
 
 while not rospy.is_shutdown():
     rospy.spin()

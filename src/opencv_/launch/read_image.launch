@@ -1,0 +1,3 @@
+<launch>
+	<node name="read_image" pkg="opencv_" type="read_image.py" output="screen"/>
+</launch>
