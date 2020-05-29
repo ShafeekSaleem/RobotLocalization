@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 
 import numpy as np 
 import cv2 
@@ -19,8 +19,6 @@ class OrbFeature2D:
   
     def detectAndCompute(self, img):
 	#detect and compute
-	kps, des = self.orb_extractor.detectAndCompute(img) 
-        # convert keypoints 
-        kps = [cv2.KeyPoint(*kp) for kp in kps_tuples]
+	kps, des = self.orb_extractor.detectAndCompute(img, None) 
         return kps, des   
 

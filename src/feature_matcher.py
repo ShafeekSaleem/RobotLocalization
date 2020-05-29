@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np 
 import cv2
 from parameters import Parameters  
@@ -9,36 +10,7 @@ kRatioTest = Parameters.kFeatureMatchRatioTest
 class FeatureMatcherTypes(Enum):
     NONE = 0
     BF = 1     
-    FLANN = 2
-
-# Brute-Force Matcher 
-class BfFeatureMatcher(FeatureMatcher): 
-    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.BF):
-    
-        super().__init__(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
-        self.matcher = cv2.BFMatcher(norm_type, cross_check)     
-        self.matcher_name = 'BfFeatureMatcher'   
-
-
-# Flann Matcher 
-class FlannFeatureMatcher(FeatureMatcher): 
-    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.FLANN):
-        super().__init__(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
-        if norm_type == cv2.NORM_HAMMING:
-            # FLANN parameters for binary descriptors 
-            FLANN_INDEX_LSH = 6
-            self.index_params= dict(algorithm = FLANN_INDEX_LSH,   # Multi-Probe LSH: Efficient Indexing for High-Dimensional Similarity Search
-                        table_number = 6,      # 12
-                        key_size = 12,         # 20
-                        multi_probe_level = 1) # 2            
-        if norm_type == cv2.NORM_L2: 
-            # FLANN parameters for float descriptors 
-            FLANN_INDEX_KDTREE = 1
-            self.index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)  
-        self.search_params = dict(checks=32)   # or pass empty dictionary                 
-        self.matcher = cv2.FlannBasedMatcher(self.index_params, self.search_params)  
-        self.matcher_name = 'FlannFeatureMatcher'
-        
+    FLANN = 2        
           
 def feature_matcher_factory(norm_type=cv2.NORM_HAMMING, cross_check=False, 		ratio_test=kRatioTest, type=FeatureMatcherTypes.BF):
     if type == FeatureMatcherTypes.BF:
@@ -108,4 +80,32 @@ class FeatureMatcher(object):
                         idx1[index]=m.queryIdx
                         idx2[index]=m.trainIdx                        
         return idx1, idx2
+
+
+# Brute-Force Matcher 
+class BfFeatureMatcher(FeatureMatcher): 
+    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.BF):
+        super(BfFeatureMatcher, self).__init__(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
+        self.matcher = cv2.BFMatcher(norm_type, cross_check)     
+        self.matcher_name = 'BfFeatureMatcher'   
+
+
+# Flann Matcher 
+class FlannFeatureMatcher(FeatureMatcher): 
+    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.FLANN):
+        super(FlannFeatureMatcher, self).__init__(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
+        if norm_type == cv2.NORM_HAMMING:
+            # FLANN parameters for binary descriptors 
+            FLANN_INDEX_LSH = 6
+            self.index_params= dict(algorithm = FLANN_INDEX_LSH,   # Multi-Probe LSH: Efficient Indexing for High-Dimensional Similarity Search
+                        table_number = 6,      # 12
+                        key_size = 12,         # 20
+                        multi_probe_level = 1) # 2            
+        if norm_type == cv2.NORM_L2: 
+            # FLANN parameters for float descriptors 
+            FLANN_INDEX_KDTREE = 1
+            self.index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 4)  
+        self.search_params = dict(checks=32)   # or pass empty dictionary                 
+        self.matcher = cv2.FlannBasedMatcher(self.index_params, self.search_params)  
+        self.matcher_name = 'FlannFeatureMatcher'
 

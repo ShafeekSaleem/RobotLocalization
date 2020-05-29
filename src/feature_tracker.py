@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np 
 import cv2
 from enum import Enum
@@ -58,16 +60,15 @@ class FeatureTracker(object):
         kps_cur, des_cur = self.detectAndCompute(image_cur)
         # convert from list of keypoints to an array of points 
         kps_cur = np.array([x.pt for x in kps_cur], dtype=np.float32) 
-    
         idxs_ref, idxs_cur = self.matcher.match(des_ref, des_cur)  #knnMatch
 
         res = FeatureTrackingResult()
         res.kps_ref = kps_ref  # all the reference keypoints  
         res.kps_cur = kps_cur  # all the current keypoints       
         res.des_cur = des_cur  # all the current descriptors         
-        res.kps_ref_matched = np.asarray(kps_ref[idxs_ref])
+        res.kps_ref_matched = np.asarray([kps_ref[pt] for pt in idxs_ref])
         res.idxs_ref = np.asarray(idxs_ref)                  
-        res.kps_cur_matched = np.asarray(kps_cur[idxs_cur])
+        res.kps_cur_matched = np.asarray([kps_cur[pt] for pt in idxs_cur])
         res.idxs_cur = np.asarray(idxs_cur)
         return res                
 
