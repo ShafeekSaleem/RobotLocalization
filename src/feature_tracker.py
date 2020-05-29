@@ -59,16 +59,17 @@ class FeatureTracker(object):
     def track(self, image_ref, image_cur, kps_ref, des_ref):
         kps_cur, des_cur = self.detectAndCompute(image_cur)
         # convert from list of keypoints to an array of points 
-        kps_cur = np.array([x.pt for x in kps_cur], dtype=np.float32) 
+	kps_ref = np.array([x.pt for x in kps_ref], dtype=np.float32)        
+	kps_cur = np.array([x.pt for x in kps_cur], dtype=np.float32) 
         idxs_ref, idxs_cur = self.matcher.match(des_ref, des_cur)  #knnMatch
-
+	print(type(kps_cur))
         res = FeatureTrackingResult()
         res.kps_ref = kps_ref  # all the reference keypoints  
         res.kps_cur = kps_cur  # all the current keypoints       
         res.des_cur = des_cur  # all the current descriptors         
-        res.kps_ref_matched = np.asarray([kps_ref[pt] for pt in idxs_ref])
+        res.kps_ref_matched = np.int32([kps_ref[pts] for pts in idxs_ref])
         res.idxs_ref = np.asarray(idxs_ref)                  
-        res.kps_cur_matched = np.asarray([kps_cur[pt] for pt in idxs_cur])
+        res.kps_cur_matched = np.int32([kps_cur[pts] for pts in idxs_cur])
         res.idxs_cur = np.asarray(idxs_cur)
         return res                
 
