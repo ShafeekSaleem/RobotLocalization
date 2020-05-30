@@ -1,2 +1,19 @@
-# RobotLocalization
-SLAM implementation based on RGB-D data
+# Robot Localization | VO-SLAM 
+VO-SLAM contains a python implementation of a monocular SLAM algorithm using Visual Odometry (VO) pipeline. This VO-SLAM package was developed to run in as a [ros](http://wiki.ros.org/) package. 
+
+## Abstract idea: 
+### Inter-frame pose estimation
+For each frame, key-points and descriptors are detected using [ORB](https://docs.opencv.org/3.4/d1/d89/tutorial_py_orb.html) and matched with the previous frame using [FLANN](https://docs.opencv.org/2.4/modules/flann/doc/flann_fast_approximate_nearest_neighbor_search.html) feature matcher. Using these keypoints, essential matrix is computed and from that, rotation and translation is measured with respect to the reference frame. 
+
+![Image of Matched Keypoints using FLANN feature matcher](https://github.com/ShafeekSaleem/RobotLocalization/blob/master/src/Images/result8.jpg)
+
+At each step **t**, main_vo.py estimates the current camera pose **C_t** with respect to the previous one **C_t**. For this, The inter-frame pose estimation returns **R_{k-1,k},t_{k-1,k}** with **||t_{k-1,k}||=1**. With this very basic approach, a ground truth is used in order to recover a correct inter-frame scale **s** and estimate a valid trajectory by composing **C_k = C_{k-1} * [R_{k-1,k}, s t_{k-1,k}]**. This script is a first start to understand the basics of inter-frame feature tracking and camera pose estimation.
+
+## feature_orb2D.py:
+Given an image, detects features and returns the detected key points and respective descriptors.
+
+## feature_matcher.py
+Does inter frame feature matching using either FLANN or Brute Force ([BF](https://docs.opencv.org/3.4/d3/da1/classcv_1_1BFMatcher.html)) algorithm. 
+
+## feature_tracker.py
+Using both feature_orb2D.py and feature_matcher.py, implements inter frame feature tracking and keeps track of the parameters needed for the next phase.
