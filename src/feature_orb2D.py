@@ -19,6 +19,6 @@ class OrbFeature2D:
   
     def detectAndCompute(self, img):
 	#detect and compute
-	kps, des = self.orb_extractor.detectAndCompute(img, None) 
+        kps, des = self.orb_extractor.detectAndCompute(img, None) 
         return kps, des   
 

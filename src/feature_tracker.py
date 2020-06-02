@@ -44,9 +44,9 @@ class FeatureTracker(object):
         else:
             raise ValueError()
 
-        # init orb detector  
-	self.detector = OrbFeature2D(num_features=num_features, scale_factor=scale_factor, num_levels=num_levels)   
-        # init matcher 
+        # init orb detector
+        self.detector = OrbFeature2D(num_features=num_features, scale_factor=scale_factor, num_levels=num_levels)
+	# init matcher 
         self.matcher = feature_matcher_factory(norm_type=cv2.NORM_HAMMING, ratio_test=match_ratio_test, type=self.matching_algo)        
 
 
@@ -58,11 +58,10 @@ class FeatureTracker(object):
     # out: FeatureTrackingResult()
     def track(self, image_ref, image_cur, kps_ref, des_ref):
         kps_cur, des_cur = self.detectAndCompute(image_cur)
-        # convert from list of keypoints to an array of points 
-	kps_ref = np.array([x.pt for x in kps_ref], dtype=np.float32)        
-	kps_cur = np.array([x.pt for x in kps_cur], dtype=np.float32) 
-        idxs_ref, idxs_cur = self.matcher.match(des_ref, des_cur)  #knnMatch
-	print(type(kps_cur))
+        # convert from list of keypoints to an array of points
+        kps_ref = np.array([x.pt for x in kps_ref], dtype=np.float32)
+        kps_cur = np.array([x.pt for x in kps_cur], dtype=np.float32) 
+        idxs_ref, idxs_cur = self.matcher.match(des_ref, des_cur)
         res = FeatureTrackingResult()
         res.kps_ref = kps_ref  # all the reference keypoints  
         res.kps_cur = kps_cur  # all the current keypoints       
