@@ -2,13 +2,15 @@ import numpy as np
 from enum import Enum
 import cv2
 import time 
+#import rospy
+#from sensor_msgs.msg import Image, CameraInfo
+#from cv_bridge import CvBridge, CvBridgeError
+
 
 class DatasetType(Enum):
     NONE = 0
     VIDEO = 1
     LIVE = 2 # subscribing to a ros-topic
-
-
 
 class Dataset(object):
     def __init__(self, path, fps=None, type=DatasetType.NONE):
@@ -28,10 +30,10 @@ class Dataset(object):
     def isOk(self):
         return self.is_ok
 
-    def getImage(self, frame_id):
+    def getImage(self):
         return None 
 
-    def getDepth(self, frame_id):
+    def getDepth(self):
         return None        
 
     def getTimestamp(self):
@@ -71,3 +73,62 @@ class VideoDataset(Dataset):
         if ret is False:
             print('ERROR while reading from file: ', self.filename)
         return image
+
+"""
+N.B: for live streams, set the rgb_topic and depth_topic arguments to the corrosponding ros-topics that you are subscribing into.
+ex: camera/rgb/image_raw
+"""
+
+class LiveStream(Dataset): 
+    def __init__(self, rgb_topic, depth_topic ,  type=DatasetType.LIVE): 
+        super(LiveStream, self).__init__(None,  None, type)    
+        self.rgb_topic = rgb_topic
+        self.depth_topic = depth_topic
+        self.rgb_image = None
+        self.depth_image = None
+        self.bridge = CvBridge()
+
+    def Rgb_Image(self):
+        """Method that listens the topic /camera/rgb/image_raw"""
+        def __init__(self):
+            self.listener()
+
+        def callback(self, data):
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "passthrough")
+                image = np.array(cv_image, dtype=np.uint8)
+                self.rgb_image =  image
+            except CvBridgeError, e:
+                rospy.logerr("CvBridge Error: {0}".format(e))
+            
+        def listener(self):
+            rospy.Subscriber(self.rgb_topic, Image, self.callback)
+
+    def Depth_Image(self):
+        """Method that listens the topic /camera/depth/image_raw"""
+        def __init__(self):
+            self.listener()
+
+        def callback(self, data):
+            try:
+                cv_depth = self.bridge.imgmsg_to_cv2(data, "passthrough")
+                depth_image = np.array(cv_depth, dtype=np.float32)
+                self.depth_image =  depth_image
+            except CvBridgeError, e:
+                rospy.logerr("CvBridge Error: {0}".format(e))
+            
+        def listener(self):
+            rospy.Subscriber(self.depth_topic, Image, self.callback)
+
+             
+    def getImage(self):
+        if self.rgb_image is None:
+            print("Error while reading from topic: ", self.rgb_topic)
+            return None
+        return self.rgb_image
+
+    def getDepth(self):
+        if self.depth_image is None:
+            print("Error while reading from topic: ", self.depth_topic)
+            return None
+        return self.depth_image
