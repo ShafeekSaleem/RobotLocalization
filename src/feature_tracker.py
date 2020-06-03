@@ -9,8 +9,8 @@ from feature_orb2D import OrbFeature2D
 from parameters import Parameters 
 
 
-kMinNumFeatureDefault = Parameters.kMinNumFeatureDefault
-kRatioTest = Parameters.kFeatureMatchRatioTest
+MinNumFeatureDefault = Parameters.MinNumFeatureDefault
+RatioTest = Parameters.FeatureMatchRatioTest
 
 class FeatureTrackerTypes(Enum):
     DES_BF    = 0   # descriptor-based, brute force matching with knn 
@@ -31,10 +31,10 @@ class FeatureTrackingResult(object):
 """ Extract features by using ORB, match keypoints by using desired matcher on computed descriptors """
 
 class FeatureTracker(object): 
-    def __init__(self, num_features=kMinNumFeatureDefault, 
+    def __init__(self, num_features=MinNumFeatureDefault, 
                        num_levels = 8,  
                        scale_factor = 1.2,   
-                       match_ratio_test = kRatioTest, 
+                       match_ratio_test = RatioTest, 
                        tracker_type = FeatureTrackerTypes.DES_BF):
 
         if tracker_type == FeatureTrackerTypes.DES_FLANN:

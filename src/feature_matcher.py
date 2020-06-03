@@ -5,14 +5,14 @@ from parameters import Parameters
 from enum import Enum
 from collections import defaultdict
 
-kRatioTest = Parameters.kFeatureMatchRatioTest
+RatioTest = Parameters.FeatureMatchRatioTest
 
 class FeatureMatcherTypes(Enum):
     NONE = 0
     BF = 1     
     FLANN = 2        
           
-def feature_matcher_factory(norm_type=cv2.NORM_HAMMING, cross_check=False, 		ratio_test=kRatioTest, type=FeatureMatcherTypes.BF):
+def feature_matcher_factory(norm_type=cv2.NORM_HAMMING, cross_check=False, 		ratio_test=RatioTest, type=FeatureMatcherTypes.BF):
     if type == FeatureMatcherTypes.BF:
         return BfFeatureMatcher(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
     if type == FeatureMatcherTypes.FLANN:
@@ -30,7 +30,7 @@ A DMatch object has the following attributes:
 """ 
 # base class 
 class FeatureMatcher(object): 
-    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.BF):
+    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=RatioTest, type = FeatureMatcherTypes.BF):
         self.type = type 
         self.norm_type = norm_type 
         self.cross_check = cross_check   # apply cross check 
@@ -84,7 +84,7 @@ class FeatureMatcher(object):
 
 # Brute-Force Matcher 
 class BfFeatureMatcher(FeatureMatcher): 
-    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.BF):
+    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=RatioTest, type = FeatureMatcherTypes.BF):
         super(BfFeatureMatcher, self).__init__(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
         self.matcher = cv2.BFMatcher(norm_type, cross_check)     
         self.matcher_name = 'BfFeatureMatcher'   
@@ -92,7 +92,7 @@ class BfFeatureMatcher(FeatureMatcher):
 
 # Flann Matcher 
 class FlannFeatureMatcher(FeatureMatcher): 
-    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=kRatioTest, type = FeatureMatcherTypes.FLANN):
+    def __init__(self, norm_type=cv2.NORM_HAMMING, cross_check = False, ratio_test=RatioTest, type = FeatureMatcherTypes.FLANN):
         super(FlannFeatureMatcher, self).__init__(norm_type=norm_type, cross_check=cross_check, ratio_test=ratio_test, type=type)
         if norm_type == cv2.NORM_HAMMING:
             # FLANN parameters for binary descriptors 
