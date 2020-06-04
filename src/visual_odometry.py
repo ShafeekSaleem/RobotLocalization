@@ -11,11 +11,12 @@ class ImageRecievedState(Enum):
 MinNumFeature = Parameters.MinNumFeatureDefault
 RansacThresholdPixels = Parameters.RansacThresholdPixels
 RansacProb = Parameters.RansacProb
+RansacThresholdNormalized = Parameters.RansacThresholdNormalized
 
 class VisualOdometry(object):
-    def __init__(self, cam, grountruth, feature_tracker):
+    def __init__(self, cam, feature_tracker):
         self.state = ImageRecievedState.NO_IMAGES_YET
-        self.cam = cam
+        self.cam = cam #camera object
         self.cur_image = None   # current image
         self.prev_image = None  # previous/reference image
 
@@ -39,7 +40,7 @@ class VisualOdometry(object):
 
         self.num_matched_kps = None    # current number of matched keypoints  
         self.num_inliers = None        # current number of inliers
-
+        self.mask   = None # mask of matched keypoints 
 
     def computeFundamentalMatrix(self, kps_ref, kps_cur):
         F, mask = cv2.findFundamentalMat(kps_ref, kps_cur, cv2.FM_RANSAC, param1=RansacThresholdPixels, param2=RansacProb)
@@ -61,3 +62,15 @@ class VisualOdometry(object):
             if self.des_ref is not None: 
                 self.des_ref = self.des_ref[mask_index]  
 
+    def estimatePose(self, kps_ref_matched, kps_cur_matched):
+        # undistorting points 
+        kp_ref_u = self.cam.undistort_points(kps_ref_matched)	
+        kp_cur_u = self.cam.undistort_points(kps_cur_matched)
+
+        # turn [u,v] -> [x,y] : pixel coordinates -> normalized coordinates
+        self.kpn_ref = self.cam.unproject_points(kp_ref_u)
+        self.kpn_cur = self.cam.unproject_points(kp_cur_u)
+        
+        E, self.mask = cv2.findEssentialMat(self.kpn_cur, self.kpn_ref, focal=1, pp=(0., 0.), method=cv2.RANSAC, prob=RansacProb, threshold=RansacThresholdNormalized)    
+        _, R, t, mask = cv2.recoverPose(E, self.kpn_cur, self.kpn_ref, focal=1, pp=(0., 0.))   
+        return R,t  # Rotation and Translation (with respect to 'ref' frame) 	
