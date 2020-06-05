@@ -1,10 +1,12 @@
+#!/usr/bin/env python
+
 import numpy as np 
 from enum import Enum
 import cv2
 import time 
-#import rospy
-#from sensor_msgs.msg import Image, CameraInfo
-#from cv_bridge import CvBridge, CvBridgeError
+import rospy
+from sensor_msgs.msg import Image, CameraInfo
+from cv_bridge import CvBridge, CvBridgeError
 
 
 class DatasetType(Enum):
@@ -89,27 +91,28 @@ class LiveStream(Dataset):
         self.bridge = CvBridge()
 
     def Rgb_Image(self):
+	
         """Method that listens the topic /camera/rgb/image_raw"""
-        def __init__(self):
-            self.listener()
 
-        def callback(self, data):
+        def callback(data):
             try:
                 cv_image = self.bridge.imgmsg_to_cv2(data, "passthrough")
                 image = np.array(cv_image, dtype=np.uint8)
                 self.rgb_image =  image
+	
             except CvBridgeError, e:
                 rospy.logerr("CvBridge Error: {0}".format(e))
             
         def listener(self):
-            rospy.Subscriber(self.rgb_topic, Image, self.callback)
+            rospy.Subscriber(self.rgb_topic, Image, callback)
+
+        listener(self)
 
     def Depth_Image(self):
-        """Method that listens the topic /camera/depth/image_raw"""
-        def __init__(self):
-            self.listener()
 
-        def callback(self, data):
+        """Method that listens the topic /camera/depth/image_raw"""
+
+        def callback(data):
             try:
                 cv_depth = self.bridge.imgmsg_to_cv2(data, "passthrough")
                 depth_image = np.array(cv_depth, dtype=np.float32)
@@ -118,8 +121,9 @@ class LiveStream(Dataset):
                 rospy.logerr("CvBridge Error: {0}".format(e))
             
         def listener(self):
-            rospy.Subscriber(self.depth_topic, Image, self.callback)
+            rospy.Subscriber(self.depth_topic, Image, callback)
 
+        listener(self)
              
     def getImage(self):
         if self.rgb_image is None:
