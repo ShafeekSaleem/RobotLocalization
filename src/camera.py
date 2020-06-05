@@ -5,7 +5,23 @@ import cv2
 fx, fy - focal length of the camera in pixel coordinates
 cx, cy - principle point
 D      - distortion coefficeints , D = [k1, k2, p1, p2, k3]
+
+by subscribing to the camera/depth/camera_info ros-topic, following parameters are obtained:
+	width  -> 640
+	height -> 480
+	K      -> [554.254691191187, 0.0,              320.5, 
+		   0.0,              554.254691191187, 240.5,
+		   0.0,              0.0,              1.0]
+	fx     -> 554.254691191187
+	fy     -> 554.254691191187
+	cx     -> 320.5
+	cy     -> 240.5
+	D      -> [0.0, 0.0, 0.0, 0.0, 0.0] 	
+
+distortion_model: "plumb_bob"
+simple model of radial and tangential distortion
 """
+
 class Camera: 
     def __init__(self, width, height, fx, fy, cx, cy, D, fps = 1):
         self.width = width
