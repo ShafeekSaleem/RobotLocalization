@@ -10,6 +10,9 @@ from parameters import Parameters
 import random
 import tracemalloc
 import linecache
+from visual_odometry import ImageRecievedState, VisualOdometry
+from camera import KinectCamera
+from utils import compute_euler_angle
 """
 import rospy
 from dataset import DatasetType, VideoDataset, LiveStream
@@ -17,12 +20,45 @@ from dataset import DatasetType, VideoDataset, LiveStream
 """
 
 
+MinNumFeatureDefault = Parameters.MinNumFeatureDefault
+RatioTest = Parameters.FeatureMatchRatioTest
+
+
+image_ref = cv2.imread("Images/image1.jpg")
+image_cur = cv2.imread("Images/image2.jpg")
+
+width  = 640
+height = 480
+fx     = 554.254691191187
+fy     = 554.254691191187
+cx     = 320.5
+cy     = 240.5
+D      = [0.0, 0.0, 0.0, 0.0, 0.0] 	
+cam = KinectCamera(width, height, fx, fy, cx, cy, D)
+
+feature_tracker = FeatureTracker(num_features=MinNumFeatureDefault, 
+                       num_levels = 8,  
+                       scale_factor = 1.2,   
+                       match_ratio_test = RatioTest, 
+                       tracker_type = FeatureTrackerTypes.DES_BF)
+detector = OrbFeature2D(num_features=MinNumFeatureDefault, scale_factor=1.2, num_levels=8)
+kps_ref, des_ref = detector.detectAndCompute( image_ref )
+
+res = feature_tracker.track(image_ref, image_cur, kps_ref, des_ref)
+
+
+vo = VisualOdometry(cam, feature_tracker)
+
+r,t = vo.estimatePose(res.kps_ref_matched, res.kps_cur_matched)
+r_e = compute_euler_angle(r)
+print("R: ",r)
+print("Euler angles: ",r_e)
+print("T: ",t)
 
 
 
 
-#kMinNumFeatureDefault = Parameters.kMinNumFeatureDefault
-#kRatioTest = Parameters.kFeatureMatchRatioTest
+
 
 #draw matched points in respective image
 """
@@ -32,22 +68,6 @@ def draw_points(image, points, color , is_save = True, path = "Images/result.jpg
 		image = cv2.circle(image, tuple(point), 1, color, thickness)
 	if is_save:
 		cv2.imwrite( path, image)
-"""
-"""
-image_ref = cv2.imread("Images/image1.jpg")
-image_cur = cv2.imread("Images/image2.jpg")
-
-if image_ref is None:
-        print("Image is none")
-
-detector = OrbFeature2D(num_features=kMinNumFeatureDefault, scale_factor=1.2, num_levels=8)
-
-kps_ref, des_ref = detector.detectAndCompute( image_ref )
-featureTracker = FeatureTracker(num_features=kMinNumFeatureDefault, 
-                       num_levels = 8,  
-                       scale_factor = 1.2,   
-                       match_ratio_test = kRatioTest, 
-                       tracker_type = FeatureTrackerTypes.DES_BF)
 
 tracemalloc.start()
 
@@ -55,12 +75,7 @@ current, peak = tracemalloc.get_traced_memory()
 
 print(f"Current memory usage is {current / 10**6}MB; Peak was {peak / 10**6}MB")
 tracemalloc.stop()
-"""
 
-#draw_points(image_ref, res.kps_ref_matched, (255, 0, 0))
-#draw_points(image_cur, res.kps_cur_matched, (0, 255, 0))
-#print(res.kps_ref_matched)
-"""
 def display_top(snapshot, key_type='lineno', limit=10):
     snapshot = snapshot.filter_traces((
         tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
@@ -83,13 +98,9 @@ def display_top(snapshot, key_type='lineno', limit=10):
         print("%s other: %.1f KiB" % (len(other), size / 1024))
     total = sum(stat.size for stat in top_stats)
     print("Total allocated size: %.1f KiB" % (total / 1024))
-"""
-"""
+
 tracemalloc.start()
-
 # ... run your application ...
-res = featureTracker.track(image_ref, image_cur, kps_ref, des_ref)
-
 snapshot = tracemalloc.take_snapshot()
 display_top(snapshot)
 tracemalloc.stop()

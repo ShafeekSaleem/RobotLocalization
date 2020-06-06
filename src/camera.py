@@ -1,6 +1,6 @@
 import numpy as np 
 import cv2
-
+from utils import add_ones
 """
 fx, fy - focal length of the camera in pixel coordinates
 cx, cy - principle point
@@ -35,11 +35,7 @@ class Camera:
         
         self.is_distorted = np.linalg.norm(self.D) > 1e-10
 
-    def add_ones(self, x):
-        if len(x.shape) == 1:
-            return np.array([x[0], x[1], 1])
-        else:
-            return np.concatenate([x, np.ones((x.shape[0], 1))], axis=1)
+
 
 class KinectCamera(Camera):
     def __init__(self, width, height, fx, fy, cx, cy, D, fps = 1):
