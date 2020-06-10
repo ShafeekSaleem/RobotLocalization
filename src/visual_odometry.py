@@ -4,6 +4,7 @@ from enum import Enum
 from feature_tracker import FeatureTrackerTypes, FeatureTrackingResult
 from parameters import Parameters
 from utils import poseRt
+
 class ImageRecievedState(Enum):
     NO_IMAGES_YET   = 0    
     GOT_FIRST_IMAGE = 1
@@ -77,12 +78,14 @@ class VisualOdometry(object):
         return R,t  # Rotation and Translation (with respect to 'ref' frame)
 
     def processFirstFrame(self):
+        print("processing first frame")
         self.kps_ref, self.des_ref = self.feature_tracker.detectAndCompute(self.cur_image)
         # convert from list of keypoints to an array of points 
-        self.kps_ref = np.array([x.pt for x in self.kps_ref], dtype=np.float32) 
+        #self.kps_ref = np.array([x.pt for x in self.kps_ref], dtype=np.float32) 
         self.draw_img = self.drawFeatureTracks(self.cur_image)
 
     def processInterFrames(self):
+        print("processing second frame")
         # track features 
         self.track_result = self.feature_tracker.track(self.prev_image, self.cur_image, self.kps_ref, self.des_ref)
         # estimate pose 
@@ -92,7 +95,7 @@ class VisualOdometry(object):
         self.kps_cur = self.track_result.kps_cur
         self.des_cur = self.track_result.des_cur 
         self.num_matched_kps = self.kpn_ref.shape[0] 
-        self.num_inliers =  np.sum(self.mask_match)
+        self.num_inliers =  np.sum(self.mask)
         print('# matched points: ', self.num_matched_kps, ', # inliers: ', self.num_inliers)
 
         # compute absolute rotation and translation with reference to world frame
@@ -123,23 +126,23 @@ class VisualOdometry(object):
         assert(img.ndim==2 and img.shape[0]==self.cam.height and img.shape[1]==self.cam.width), "Frame: provided image has not the same size as the camera model or image is not grayscale"
 
         self.cur_image = img 
-        if(self.stage == ImageRecievedState.GOT_FIRST_IMAGE):
+        if(self.state == ImageRecievedState.GOT_FIRST_IMAGE):
+            self.processInterFrames()
+        elif(self.state == ImageRecievedState.NO_IMAGES_YET):
             self.processFirstFrame()
-        elif(self.stage == ImageRecievedState.NO_IMAGES_YET):
-            self.processFirstFrame()
-            self.stage = ImageRecievedState.GOT_FIRST_IMAGE            
+            self.state = ImageRecievedState.GOT_FIRST_IMAGE            
         self.prev_image = self.cur_image
 
     def drawFeatureTracks(self, img, reinit = False):
         draw_img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB) 
-        if(self.stage == ImageRecievedState.GOT_FIRST_IMAGE):            
+        if(self.state == ImageRecievedState.GOT_FIRST_IMAGE):            
             if reinit:
                 for p1 in self.kps_cur:
                     a,b = p1.ravel()
                     cv2.circle(draw_img,(a,b),1, (0,255,0),-1)                    
             else:    
                 for i,pts in enumerate(zip(self.track_result.kps_ref_matched, self.track_result.kps_cur_matched)):
-                    if self.mask_match[i]:
+                    if self.mask[i]:
                         p1, p2 = pts 
                         a,b = p1.ravel()
                         c,d = p2.ravel()
