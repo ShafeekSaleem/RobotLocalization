@@ -12,6 +12,7 @@ MinNumFeature = Parameters.MinNumFeatureDefault
 RansacThresholdPixels = Parameters.RansacThresholdPixels
 RansacProb = Parameters.RansacProb
 RansacThresholdNormalized = Parameters.RansacThresholdNormalized
+AbsoluteScaleThreshold = 0.1
 
 class VisualOdometry(object):
     def __init__(self, cam, feature_tracker):
@@ -40,7 +41,8 @@ class VisualOdometry(object):
 
         self.num_matched_kps = None    # current number of matched keypoints  
         self.num_inliers = None        # current number of inliers
-        self.mask   = None # mask of matched keypoints 
+        self.mask   = None # mask of matched keypoints
+        self.trueX, self.trueY, self.trueZ, self.scale = 0, 0, 0, 1
 
     def computeFundamentalMatrix(self, kps_ref, kps_cur):
         F, mask = cv2.findFundamentalMat(kps_ref, kps_cur, cv2.FM_RANSAC, param1=RansacThresholdPixels, param2=RansacProb)
@@ -73,4 +75,45 @@ class VisualOdometry(object):
         
         E, self.mask = cv2.findEssentialMat(self.kpn_cur, self.kpn_ref, focal=1, pp=(0., 0.), method=cv2.RANSAC, prob=RansacProb, threshold=RansacThresholdNormalized)    
         _, R, t, mask = cv2.recoverPose(E, self.kpn_cur, self.kpn_ref, focal=1, pp=(0., 0.))   
-        return R,t  # Rotation and Translation (with respect to 'ref' frame) 	
+        return R,t  # Rotation and Translation (with respect to 'ref' frame)
+
+    def processFirstFrame(self):
+        self.kps_ref, self.des_ref = self.feature_tracker.detectAndCompute(self.cur_image)
+        # convert from list of keypoints to an array of points 
+        self.kps_ref = np.array([x.pt for x in self.kps_ref], dtype=np.float32) 
+        self.draw_img = self.drawFeatureTracks(self.cur_image)
+
+    def processInterFrames(self):
+        # track features 
+        self.track_result = self.feature_tracker.track(self.prev_image, self.cur_image, self.kps_ref, self.des_ref)
+        # estimate pose 
+        R, t = self.estimatePose(self.track_result.kps_ref_matched, self.track_result.kps_cur_matched)     
+        # update keypoints history  
+        self.kps_ref = self.track_result.kps_ref
+        self.kps_cur = self.track_result.kps_cur
+        self.des_cur = self.track_result.des_cur 
+        self.num_matched_kps = self.kpn_ref.shape[0] 
+        self.num_inliers =  np.sum(self.mask_match)
+        print('# matched points: ', self.num_matched_kps, ', # inliers: ', self.num_inliers)
+
+        # compute absolute rotation and translation with reference to world frame
+        """
+        N.B:
+            We represent relative rotation and translation from one frame A to another frame B by Rab and tab.
+            
+            Compose absolute motion [Rwa,twa] with estimated relative motion [Rab,s*tab] to compute [Rwb,twb].(s is the translation scale)
+            [Rwb,twb] = [Rwa,twa]*[Rab,tab] = [Rwa*Rab, twa + Rwa*tab]
+        """
+        absolute_scale = self.scale
+        if(absolute_scale > AbsoluteScaleThreshold):
+            self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t) 
+            self.cur_R = self.cur_R.dot(R)
+            
+        # draw image         
+        self.draw_img = self.drawFeatureTracks(self.cur_image) 
+                  
+        self.kps_ref = self.kps_cur
+        self.des_ref = self.des_cur
+        self.updateHistory()           
+        
+        
