@@ -3,7 +3,7 @@ import cv2
 from enum import Enum
 from feature_tracker import FeatureTrackerTypes, FeatureTrackingResult
 from parameters import Parameters
-
+from utils import poseRt
 class ImageRecievedState(Enum):
     NO_IMAGES_YET   = 0    
     GOT_FIRST_IMAGE = 1
@@ -12,7 +12,7 @@ MinNumFeature = Parameters.MinNumFeatureDefault
 RansacThresholdPixels = Parameters.RansacThresholdPixels
 RansacProb = Parameters.RansacProb
 RansacThresholdNormalized = Parameters.RansacThresholdNormalized
-AbsoluteScaleThreshold = 0.1
+AbsoluteScaleThreshold = Parameters.AbsoluteScaleThreshold
 
 class VisualOdometry(object):
     def __init__(self, cam, feature_tracker):
@@ -34,10 +34,9 @@ class VisualOdometry(object):
 
         self.init_history = True 
         self.poses = []              # track list of poses
-        self.trans_est = None           # track list of estimated translations      
-        self.trans_gt = None            # track list of ground truth translations (if available)
-        self.trans_est_ref = []         # track list of estimated translations centered w.r.t. first one
-        self.trans_gt_ref = []          # track list of estimated ground truth translations centered w.r.t. first one     
+        self.trans_est = None           # history of starting estimated translation      
+        self.trans_gt = None            # history of starting ground truth translation   ( if available )
+        self.trans_est_ref = []         # history of estimated translations centered w.r.t. first one
 
         self.num_matched_kps = None    # current number of matched keypoints  
         self.num_inliers = None        # current number of inliers
@@ -114,6 +113,48 @@ class VisualOdometry(object):
                   
         self.kps_ref = self.kps_cur
         self.des_ref = self.des_cur
-        self.updateHistory()           
+        self.updateHistory()
+
+    def trackImage(self, img):
+        # convert image to gray if needed    
+        if img.ndim>2:
+            img = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
+        # check coherence of image size with camera settings 
+        assert(img.ndim==2 and img.shape[0]==self.cam.height and img.shape[1]==self.cam.width), "Frame: provided image has not the same size as the camera model or image is not grayscale"
+
+        self.cur_image = img 
+        if(self.stage == ImageRecievedState.GOT_FIRST_IMAGE):
+            self.processFirstFrame()
+        elif(self.stage == ImageRecievedState.NO_IMAGES_YET):
+            self.processFirstFrame()
+            self.stage = ImageRecievedState.GOT_FIRST_IMAGE            
+        self.prev_image = self.cur_image
+
+    def drawFeatureTracks(self, img, reinit = False):
+        draw_img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB) 
+        if(self.stage == ImageRecievedState.GOT_FIRST_IMAGE):            
+            if reinit:
+                for p1 in self.kps_cur:
+                    a,b = p1.ravel()
+                    cv2.circle(draw_img,(a,b),1, (0,255,0),-1)                    
+            else:    
+                for i,pts in enumerate(zip(self.track_result.kps_ref_matched, self.track_result.kps_cur_matched)):
+                    if self.mask_match[i]:
+                        p1, p2 = pts 
+                        a,b = p1.ravel()
+                        c,d = p2.ravel()
+                        cv2.line(draw_img, (a,b),(c,d), (0,255,0), 1)
+                        cv2.circle(draw_img,(a,b),1, (0,0,255),-1)   
+        return draw_img   
+
+    def updateHistory(self):
+        if (self.init_history is True) and (self.trueX is not None):
+            self.trans_est = np.array([self.cur_t[0], self.cur_t[1], self.cur_t[2]])  # setting up the translation of the first frame as starting translation 
+            self.init_history = False 
+        if (self.trans_est is not None):
+            # translation of the current frame with respect to the first frame
+            pose = [self.cur_t[0]-self.trans_est[0], self.cur_t[1]-self.trans_est[1], self.cur_t[2]-self.trans_est[2]]
+            self.trans_est_ref.append(pose) 
+            self.poses.append(poseRt(self.cur_R, pose))   
         
         

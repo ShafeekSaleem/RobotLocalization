@@ -24,3 +24,10 @@ def compute_euler_angle(R):
     b = math.atan2(R[0,2], math.sqrt(R[1,2]**2+R[2,2]**2))
     c = math.atan2(-1*R[0,1], R[0,0])
     return np.array([a,b,c])
+
+# [4x4] homogeneous T from [3x3] R and [3x1] t             
+def poseRt(R, t):
+    ret = np.eye(4)
+    ret[:3, :3] = R
+    ret[:3, 3] = t
+    return ret  
