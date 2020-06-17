@@ -2,24 +2,57 @@
 
 import numpy as np
 import cv2
-
+import time
 from feature_tracker import FeatureTrackerTypes, FeatureTracker, FeatureTrackingResult
 from feature_orb2D import OrbFeature2D
 from feature_matcher import feature_matcher_factory, FeatureMatcherTypes
 from parameters import Parameters 
 import random
-import tracemalloc
+#import tracemalloc
 import linecache
-from visual_odometry import ImageRecievedState, VisualOdometry
-from camera import KinectCamera
-from utils import compute_euler_angle
-"""
+#from visual_odometry import ImageRecievedState, VisualOdometry
+#from camera import KinectCamera
+#from utils import compute_euler_angle
+
 import rospy
 from dataset import DatasetType, VideoDataset, LiveStream
 
+rgb_topic = "/camera/rgb/image_raw"
+depth_topic = "/camera/depth/image_raw"
+odom_topic = "/odom"
+Live = LiveStream(rgb_topic, depth_topic , odom_topic,  type=DatasetType.LIVE)
+translations = []
+rotations = []
+
+def init_node():
+    global translations, rotations
+    rospy.init_node('read_image', anonymous=True)
+    Live.synchronize()
+    time.sleep(10)
+    print("start moving you bitch!")
+    for i in range(100):
+	translations.append(Live.translation)
+	rotations.append(Live.rotation)
+	if Live.rgb_image is not None:
+	   cv2.imwrite("/home/dexter/Pictures/100/image_"+str(i)+".jpg",Live.rgb_image)
+	print(i)
+	time.sleep(0.5)
+    np.save("/home/dexter/Pictures/100/0/translations.npy", translations)
+    np.save("/home/dexter/Pictures/100/0/rotations.npy", rotations)
+    while not rospy.is_shutdown():
+    	rospy.spin()
+init_node()
+
+
+
+
+
+
+
+
+
+
 """
-
-
 MinNumFeatureDefault = Parameters.MinNumFeatureDefault
 RatioTest = Parameters.FeatureMatchRatioTest
 
@@ -61,7 +94,7 @@ print("T: ",t)
 
 
 #draw matched points in respective image
-"""
+
 def draw_points(image, points, color , is_save = True, path = "Images/result.jpg"):
 	thickness = 2
 	for point in points:

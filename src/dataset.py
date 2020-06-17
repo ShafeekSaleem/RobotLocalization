@@ -101,17 +101,18 @@ class LiveStream(Dataset):
 
         def callback(image, odom):
             try:
-                cv_image = self.bridge.imgmsg_to_cv2(data, "passthrough")
+                cv_image = self.bridge.imgmsg_to_cv2(image, "passthrough")
                 image = np.array(cv_image, dtype=np.uint8)
                 self.rgb_image =  image
-		x = odom.pose.pose.position.x
-		y = odom.pose.pose.position.y
-		z = odom.pose.pose.position.z
+		x = round(odom.pose.pose.position.x,3)
+		y = round(odom.pose.pose.position.y,3)
+		z = round(odom.pose.pose.position.z,3)
 		self.translation = [x,y,z]
 		quaternion = odom.pose.pose.orientation
 		quaternion_list = [quaternion.x,quaternion.y,quaternion.z,quaternion.w]
 		(roll, pitch, yaw) = euler_from_quaternion(quaternion_list)
-		self.rotation = (roll, pitch, yaw)
+		self.rotation = (round(roll,3), round(pitch,3), round(yaw,3))
+	
 	
             except CvBridgeError, e:
                 rospy.logerr("CvBridge Error: {0}".format(e))
