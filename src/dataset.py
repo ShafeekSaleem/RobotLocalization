@@ -7,7 +7,9 @@ import time
 import rospy
 from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
-
+from nav_msgs.msg import Odometry
+import message_filters
+from tf.transformations import euler_from_quaternion
 
 class DatasetType(Enum):
     NONE = 0
@@ -82,13 +84,47 @@ ex: camera/rgb/image_raw
 """
 
 class LiveStream(Dataset): 
-    def __init__(self, rgb_topic, depth_topic ,  type=DatasetType.LIVE): 
+    def __init__(self, rgb_topic, depth_topic , odom_topic,  type=DatasetType.LIVE): 
         super(LiveStream, self).__init__(None,  None, type)    
         self.rgb_topic = rgb_topic
         self.depth_topic = depth_topic
+	self.odom_topic = odom_topic
         self.rgb_image = None
         self.depth_image = None
+	self.translation = None
+	self.rotation = None 
         self.bridge = CvBridge()
+	    
+    def synchronize(self):
+	
+        """Method that listens the topic /camera/rgb/image_raw and /odom with time synchronization"""
+
+        def callback(image, odom):
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "passthrough")
+                image = np.array(cv_image, dtype=np.uint8)
+                self.rgb_image =  image
+		x = odom.pose.pose.position.x
+		y = odom.pose.pose.position.y
+		z = odom.pose.pose.position.z
+		self.translation = [x,y,z]
+		quaternion = odom.pose.pose.orientation
+		quaternion_list = [quaternion.x,quaternion.y,quaternion.z,quaternion.w]
+		(roll, pitch, yaw) = euler_from_quaternion(quaternion_list)
+		self.rotation = (roll, pitch, yaw)
+	
+            except CvBridgeError, e:
+                rospy.logerr("CvBridge Error: {0}".format(e))
+            
+        def listener(self):
+                sub_image = message_filters.Subscriber("/camera/rgb/image_raw", Image)
+    		sub_odom  = message_filters.Subscriber("/odom", Odometry)
+    		ts = message_filters.TimeSynchronizer([sub_image, sub_odom], 10)
+    		ts.registerCallback(callback)
+
+        listener(self)
+	
+
 
     def Rgb_Image(self):
 	
@@ -124,7 +160,10 @@ class LiveStream(Dataset):
             rospy.Subscriber(self.depth_topic, Image, callback)
 
         listener(self)
-             
+            
+    def getPose(self):
+	return self.rotation, self.translation
+ 
     def getImage(self):
         if self.rgb_image is None:
             print("Error while reading from topic: ", self.rgb_topic)
