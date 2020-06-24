@@ -17,30 +17,38 @@ import linecache
 import rospy
 from dataset import DatasetType, VideoDataset, LiveStream
 
+
 rgb_topic = "/camera/rgb/image_raw"
 depth_topic = "/camera/depth/image_raw"
 odom_topic = "/odom"
 Live = LiveStream(rgb_topic, depth_topic , odom_topic,  type=DatasetType.LIVE)
 translations = []
-rotations = []
+rotationsE = []
+rotationsM = []
+depth = []
+
 
 def init_node():
     global translations, rotations
     rospy.init_node('read_image', anonymous=True)
     Live.synchronize()
-    time.sleep(10)
+    time.sleep(5)
     print("start moving you bitch!")
-    for i in range(100):
+    for i in range(50):
 	translations.append(Live.translation)
-	rotations.append(Live.rotation)
+	rotationsE.append(Live.rotationEuler)
+	rotationsM.append(Live.rotationMatrix)
 	if Live.rgb_image is not None:
-	   cv2.imwrite("/home/dexter/Pictures/100/image_"+str(i)+".jpg",Live.rgb_image)
+	   cv2.imwrite("/home/dexter/Pictures/101/image_"+str(i)+".jpg",Live.rgb_image)
 	print(i)
-	time.sleep(0.5)
-    np.save("/home/dexter/Pictures/100/0/translations.npy", translations)
-    np.save("/home/dexter/Pictures/100/0/rotations.npy", rotations)
+	time.sleep(0.4)
+    np.save("/home/dexter/Pictures/101/0/translations.npy", translations)
+    np.save("/home/dexter/Pictures/101/0/rotationsE.npy", rotationsE)
+    np.save("/home/dexter/Pictures/101/0/rotationsM.npy", rotationsM)
     while not rospy.is_shutdown():
     	rospy.spin()
+
+
 init_node()
 
 

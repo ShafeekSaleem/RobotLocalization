@@ -10,6 +10,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from nav_msgs.msg import Odometry
 import message_filters
 from tf.transformations import euler_from_quaternion
+from tf.transformations import quaternion_matrix
 
 class DatasetType(Enum):
     NONE = 0
@@ -92,18 +93,24 @@ class LiveStream(Dataset):
         self.rgb_image = None
         self.depth_image = None
 	self.translation = None
-	self.rotation = None 
+	self.rotationEuler = None 
+	self.rotationMatrix = None
         self.bridge = CvBridge()
 	    
     def synchronize(self):
 	
         """Method that listens the topic /camera/rgb/image_raw and /odom with time synchronization"""
 
-        def callback(image, odom):
+        def callback(image, image_d, odom):
             try:
                 cv_image = self.bridge.imgmsg_to_cv2(image, "passthrough")
                 image = np.array(cv_image, dtype=np.uint8)
                 self.rgb_image =  image
+
+		cv_depth = self.bridge.imgmsg_to_cv2(image_d, "passthrough")
+                depth_image = np.array(cv_depth, dtype=np.float32)
+                self.depth_image =  depth_image
+
 		x = round(odom.pose.pose.position.x,3)
 		y = round(odom.pose.pose.position.y,3)
 		z = round(odom.pose.pose.position.z,3)
@@ -111,7 +118,8 @@ class LiveStream(Dataset):
 		quaternion = odom.pose.pose.orientation
 		quaternion_list = [quaternion.x,quaternion.y,quaternion.z,quaternion.w]
 		(roll, pitch, yaw) = euler_from_quaternion(quaternion_list)
-		self.rotation = (round(roll,3), round(pitch,3), round(yaw,3))
+		self.rotationEuler = (round(roll,3), round(pitch,3), round(yaw,3))
+		self.rotationMatrix = quaternion_matrix(quaternion_list)
 	
 	
             except CvBridgeError, e:
@@ -120,7 +128,8 @@ class LiveStream(Dataset):
         def listener(self):
                 sub_image = message_filters.Subscriber("/camera/rgb/image_raw", Image)
     		sub_odom  = message_filters.Subscriber("/odom", Odometry)
-    		ts = message_filters.TimeSynchronizer([sub_image, sub_odom], 10)
+		sub_depth = message_filters.Subscriber("/camera/depth/image_raw", Image)
+    		ts = message_filters.TimeSynchronizer([sub_image,sub_depth, sub_odom], 10)
     		ts.registerCallback(callback)
 
         listener(self)
