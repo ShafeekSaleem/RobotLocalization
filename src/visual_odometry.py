@@ -28,7 +28,8 @@ class VisualOdometry(object):
         self.des_cur = None # current descriptors 
 
         self.cur_R = np.eye(3,3) # current rotation 
-        self.cur_t = np.zeros((3,1)) # current translation 
+        self.cur_t = np.zeros((3,1)) # current translation
+        self.cur_t2 = np.zeros((3,1)) # current translation
      
         self.feature_tracker = feature_tracker
         self.track_result = None 
@@ -36,9 +37,11 @@ class VisualOdometry(object):
         self.init_history = True 
         self.poses = []              # track list of poses
         self.trans_est = None           # history of starting estimated translation      
+        self.trans_est2 = None 
         self.trans_gt_ref = None            # history of estimated ground truth translations centered w.r.t. world frame   ( if available )
         self.rotation_gt_ref = None            # history of estimated ground truth rotations centered w.r.t. world frame ( if available )
         self.trans_est_ref = []         # history of estimated translations centered w.r.t. first one
+        self.trans_est_ref2 = []         # history of estimated translations centered w.r.t. first one
 
         self.num_matched_kps = None    # current number of matched keypoints  
         self.num_inliers = None        # current number of inliers
@@ -93,7 +96,7 @@ class VisualOdometry(object):
         self.draw_img = self.drawFeatureTracks(self.cur_image)
 
     def processInterFrames(self, frame_id):
-        print("processing second frame")
+        print("processing "+str(frame_id)+" frame")
         # track features 
         self.track_result = self.feature_tracker.track(self.prev_image, self.cur_image, self.kps_ref, self.des_ref)
         # estimate pose
@@ -121,7 +124,8 @@ class VisualOdometry(object):
             """
             absolute_scale = self.scale
             if(absolute_scale > AbsoluteScaleThreshold):
-                self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t) 
+                self.cur_t = self.cur_t + absolute_scale*self.cur_R.dot(t)
+                self.cur_t2 = self.cur_t + t
                 self.cur_R = self.cur_R.dot(R)
             
         # draw image         
@@ -167,10 +171,13 @@ class VisualOdometry(object):
     def updateHistory(self):
         if (self.init_history is True) and (self.trueX is not None):
             self.trans_est = np.array([self.cur_t[0], self.cur_t[1], self.cur_t[2]])  # setting up the translation of the first frame as starting translation 
+            self.trans_est2 = np.array([self.cur_t2[0], self.cur_t2[1], self.cur_t2[2]]) 
             self.init_history = False 
         if (self.trans_est is not None):
             # translation of the current frame with respect to the first frame
             pose = [self.cur_t[0]-self.trans_est[0], self.cur_t[1]-self.trans_est[1], self.cur_t[2]-self.trans_est[2]]
-            self.trans_est_ref.append(pose) 
+            pose2 = [self.cur_t2[0]-self.trans_est2[0], self.cur_t2[1]-self.trans_est2[1], self.cur_t2[2]-self.trans_est2[2]]
+            self.trans_est_ref.append(pose)
+            self.trans_est_ref2.append(pose2) 
             self.poses.append(poseRt(self.cur_R, pose))   
         

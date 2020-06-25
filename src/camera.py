@@ -1,6 +1,8 @@
 import numpy as np 
 import cv2
 from utils import add_ones
+import math
+
 """
 fx, fy - focal length of the camera in pixel coordinates
 cx, cy - principle point
@@ -59,9 +61,13 @@ class KinectCamera(Camera):
     def unproject_points_z(self, uvs, Z):
           xyzs = []
           for idx in range(uvs.shape[0]):
-            z = Z[0] if len(Z) == 1 else Z[idx]
-            x = ((uvs[idx, 0] - self.c_x) / self.f_x) * z
-            y = ((uvs[idx, 1] - self.c_y) / self.f_y) * z
+            z = Z[uvs[idx, 0],uvs[idx, 1]]
+            if math.isnan(z):
+                continue
+            if z==0:print("z is zero")
+            x = ((uvs[idx, 0] - self.cx) / self.fx) * z
+            y = ((uvs[idx, 1] - self.cy) / self.fy) * z
+
             xyzs.append([x, y, z])
           return xyzs
 
