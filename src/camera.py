@@ -60,16 +60,17 @@ class KinectCamera(Camera):
     # turn [u,v] -> [x,y,z] : Z contains the depth values for each pixels
     def unproject_points_z(self, uvs, Z):
           xyzs = []
+          idx_ = []
           for idx in range(uvs.shape[0]):
             z = Z[uvs[idx, 0],uvs[idx, 1]]
-            if math.isnan(z):
+            if math.isnan(z) or z==0:
+                idx_.append(idx)
                 continue
-            if z==0:print("z is zero")
-            x = ((uvs[idx, 0] - self.cx) / self.fx) * z
-            y = ((uvs[idx, 1] - self.cy) / self.fy) * z
+            x = ((uvs[idx, 1] - self.cx) / self.fx) * z
+            y = ((uvs[idx, 0] - self.cy) / self.fy) * z
 
             xyzs.append([x, y, z])
-          return xyzs
+          return xyzs, idx_
 
     # turn uvs of Nx2 array into uvs_undistorted of Nx2 
     def undistort_points(self, uvs):

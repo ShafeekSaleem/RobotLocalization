@@ -1,8 +1,0 @@
-prefix=/home/dexter/my_workspace/devel
-
-Name: turtlebot3_slam
-Description: Description of turtlebot3_slam
-Version: 1.2.3
-Cflags: -I/home/dexter/my_workspace/src/turtlebot3_slam/include
-Libs: -L${prefix}/lib 
-Requires: roscpp sensor_msgs

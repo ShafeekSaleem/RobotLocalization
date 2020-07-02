@@ -1,8 +1,0 @@
-prefix=/home/dexter/my_workspace/devel
-
-Name: husky_navigation
-Description: Description of husky_navigation
-Version: 0.4.3
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

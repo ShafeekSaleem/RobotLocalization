@@ -1,8 +1,0 @@
-prefix=/home/dexter/my_workspace/devel
-
-Name: husky_bringup
-Description: Description of husky_bringup
-Version: 0.4.3
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

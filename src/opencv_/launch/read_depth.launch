@@ -1,3 +1,0 @@
-<launch>
-	<node name="read_depth" pkg="opencv_" type="read_depth.py" output="screen"/>
-</launch>

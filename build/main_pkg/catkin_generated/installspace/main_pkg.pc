@@ -1,8 +1,0 @@
-prefix=/home/dexter/my_workspace/install
-
-Name: main_pkg
-Description: Description of main_pkg
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lmain_pkg
-Requires: roscpp rospy std_msgs

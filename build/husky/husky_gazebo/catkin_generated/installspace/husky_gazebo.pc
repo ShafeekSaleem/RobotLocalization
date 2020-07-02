@@ -1,8 +1,0 @@
-prefix=/home/dexter/my_workspace/install
-
-Name: husky_gazebo
-Description: Description of husky_gazebo
-Version: 0.4.3
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
