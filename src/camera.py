@@ -70,7 +70,7 @@ class KinectCamera(Camera):
             y = ((uvs[idx, 0] - self.cy) / self.fy) * z
 
             xyzs.append([x, y, z])
-          return xyzs, idx_
+          return np.array(xyzs, np.float64), idx_
 
     # turn uvs of Nx2 array into uvs_undistorted of Nx2 
     def undistort_points(self, uvs):

@@ -31,3 +31,13 @@ def poseRt(R, t):
     ret[:3, :3] = R
     ret[:3, 3] = t
     return ret  
+# [N, x,y] -> [N, y, x]
+def switch_xy(xy):
+    yx = []
+    for i in xy:
+        yx.append([i[1],i[0]])
+    return np.array(yx)
+
+# remove rows  in an array given indexes
+def removeByIndexes( arr, indexes ):
+    return np.array(np.delete(arr,indexes, axis=0),np.float32)
