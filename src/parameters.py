@@ -15,6 +15,10 @@ class Parameters(object):
     RansacThresholdPixels = 0.1         # pixel threshold used for image coordinates 
     AbsoluteScaleThreshold = 0.1        # absolute translation scale; it is also the minimum translation norm for an accepted motion 
     RansacProb = 0.999
+
+    # Alpha and error threshold
+    Alpha = 0.5
+    ErrorThreshold = 0.3
    
 
 

@@ -8,15 +8,18 @@ from utils import *
 class ImageRecievedState(Enum):
     NO_IMAGES_YET   = 0    
     GOT_FIRST_IMAGE = 1
+
    
 MinNumFeature = Parameters.MinNumFeatureDefault
 RansacThresholdPixels = Parameters.RansacThresholdPixels
 RansacProb = Parameters.RansacProb
 RansacThresholdNormalized = Parameters.RansacThresholdNormalized
 AbsoluteScaleThreshold = Parameters.AbsoluteScaleThreshold
+Alpha = Parameters.Alpha
+ErrorThreshold = Parameters.ErrorThreshold
 
 class VisualOdometry(object):
-    def __init__(self, cam, feature_tracker, alpha, error_threshold ):
+    def __init__(self, cam, feature_tracker, dynamic_alpha = False, set_error_threshold = False ):
         self.state = ImageRecievedState.NO_IMAGES_YET
         self.cam = cam #camera object
         self.cur_image = None   # current image
@@ -49,9 +52,11 @@ class VisualOdometry(object):
         self.num_inliers = None        # current number of inliers
         self.mask   = None # mask of matched keypoints
 
-        self.alpha = alpha
-        self.alpha0 = alpha
-        self.error_threshold = error_threshold
+        self.alpha = Alpha
+        self.alpha0 = Alpha
+        self.error_threshold = ErrorThreshold
+        self.dynamic_alpha = dynamic_alpha
+        self.set_error_threshold = set_error_threshold
         self.scale = 1
 
     def computeFundamentalMatrix(self, kps_ref, kps_cur):
@@ -92,21 +97,21 @@ class VisualOdometry(object):
             _, R, t, mask = cv2.recoverPose(E, self.kpn_cur, self.kpn_ref, focal=1, pp=(0., 0.))   
             return R,t  # Rotation and Translation (with respect to 'ref' frame)
 
+    def estimatePosePNP(self, xyz_ref, kps_cur_matched, frame_id):
+        _, R, t, inliers = cv2.solvePnPRansac( xyz_ref, kps_cur_matched, self.cam.K, self.cam.D)
+        return R, t, inliers
+
     def computeError( self, vo_translation, mo_translation ):
         error   = [a_i - b_i for a_i, b_i in zip(vo_translation, mo_translation)]
         err_sum = sum([abs(i) for i in error])
         return error, err_sum
-
-    def estimatePosePNP(self, xyz_ref, kps_cur_matched, frame_id):
-        _, R, t, inliers = cv2.solvePnPRansac( xyz_ref, kps_cur_matched, self.cam.K, self.cam.D)
-        return R, t, inliers
 
     def processFirstFrame(self):
         print("processing first frame")
         self.kps_ref, self.des_ref = self.feature_tracker.detectAndCompute(self.cur_image)
         # convert from list of keypoints to an array of points 
         self.kps_ref = np.array([x.pt for x in self.kps_ref], dtype=np.float32) 
-        #self.draw_img = self.drawFeatureTracks(self.cur_image)
+        # self.draw_img = self.drawFeatureTracks(self.cur_image)
 
     def processInterFrames(self, frame_id):
         print("processing "+str(frame_id)+" frame")
@@ -129,16 +134,16 @@ class VisualOdometry(object):
         self.kps_ref = self.track_result.kps_ref
         self.kps_cur = self.track_result.kps_cur
         self.des_cur = self.track_result.des_cur
+        self.num_inliers = inliers.shape[0]
+        # self.mask = inliers
 
         # update estimations
         self.trans_est.append(t)
         self.rotation_est.append(R)
         
         self.num_matched_kps = self.kps_ref.shape[0] 
-        #self.num_inliers =  np.sum(self.mask)
-        #print('# matched points: ', self.num_matched_kps, ', # inliers: ', self.num_inliers)
         print('# matched points: ', self.num_matched_kps)
-        print('Inliers after Ransac : ' + str(inliers.shape[0]))
+        print('Inliers after Ransac : ' + str(self.num_inliers))
         
         # compute absolute rotation and translation with reference to world frame
         """
@@ -153,7 +158,7 @@ class VisualOdometry(object):
         self.cur_R = R # todo
             
         # draw image         
-        #self.draw_img = self.drawFeatureTracks(self.cur_image) 
+        # self.draw_img = self.drawFeatureTracks(self.cur_image) 
                   
         self.kps_ref = self.kps_cur
         self.des_ref = self.des_cur
@@ -188,13 +193,12 @@ class VisualOdometry(object):
                     a,b = p1.ravel()
                     cv2.circle(draw_img,(a,b),1, (0,255,0),-1)                    
             else:    
-                for i,pts in enumerate(zip(self.track_result.kps_ref_matched, self.track_result.kps_cur_matched)):
-                    if self.mask[i]:
-                        p1, p2 = pts 
-                        a,b = p1.ravel()
-                        c,d = p2.ravel()
-                        cv2.line(draw_img, (a,b),(c,d), (0,255,0), 1)
-                        cv2.circle(draw_img,(a,b),1, (0,0,255),-1)   
+                for i,pts in enumerate(zip(self.track_result.kps_ref_matched, self.track_result.kps_cur_matched)):        
+                    p1, p2 = pts 
+                    a,b = p1.ravel()
+                    c,d = p2.ravel()
+                    cv2.line(draw_img, (a,b),(c,d), (0,255,0), 1)
+                    cv2.circle(draw_img,(a,b),1, (0,0,255),-1)   
         return draw_img   
 
     def updateHistory(self, frame_id):
@@ -203,10 +207,16 @@ class VisualOdometry(object):
 
         error, err_sum = self.computeError(self.cur_t, self.groundtruth_t[frame_id])
         self.errors.append(err_sum)
-        if self.error_threshold!=-1:
+        if self.set_error_threshold:
             if err_sum> self.error_threshold:
                 self.alpha = self.alpha/(err_sum/self.error_threshold)
+
+        # re-estimate pose as error*vo+mo
         pose = [e*self.alpha + t for e, t in zip(error, self.groundtruth_t[frame_id])]
-        self.alpha = self.alpha0
+        self.cur_t = pose
+        if self.dynamic_alpha:
+            self.alpha = self.num_inliers/MinNumFeature
+        else:
+            self.alpha = self.alpha0
         self.poses.append(pose)   
         
