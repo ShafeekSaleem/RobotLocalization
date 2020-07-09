@@ -18,6 +18,7 @@ class Parameters(object):
 
     # Alpha and error threshold
     Alpha = 0.5
+    MinAlpha = 0.1
     ErrorThreshold = 0.3
    
 

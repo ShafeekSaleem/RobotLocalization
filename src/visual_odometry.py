@@ -16,6 +16,7 @@ RansacProb = Parameters.RansacProb
 RansacThresholdNormalized = Parameters.RansacThresholdNormalized
 AbsoluteScaleThreshold = Parameters.AbsoluteScaleThreshold
 Alpha = Parameters.Alpha
+MinAlpha = Parameters.MinAlpha
 ErrorThreshold = Parameters.ErrorThreshold
 
 class VisualOdometry(object):
@@ -206,7 +207,7 @@ class VisualOdometry(object):
         self.rotation_est_ref.append(self.cur_R)
 
         error, err_sum = self.computeError(self.cur_t, self.groundtruth_t[frame_id])
-        self.errors.append(err_sum)
+        #self.errors.append(err_sum)
         if self.set_error_threshold:
             if err_sum> self.error_threshold:
                 self.alpha = self.alpha/(err_sum/self.error_threshold)
@@ -214,8 +215,10 @@ class VisualOdometry(object):
         # re-estimate pose as error*vo+mo
         pose = [e*self.alpha + t for e, t in zip(error, self.groundtruth_t[frame_id])]
         self.cur_t = pose
+        error, err_sum = self.computeError(self.cur_t, self.groundtruth_t[frame_id])
+        self.errors.append(err_sum)
         if self.dynamic_alpha:
-            self.alpha = self.num_inliers/MinNumFeature
+            self.alpha = max(MinAlpha, self.num_inliers/MinNumFeature)
         else:
             self.alpha = self.alpha0
         self.poses.append(pose)   
