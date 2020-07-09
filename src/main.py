@@ -51,11 +51,22 @@ y = []
 x_t = []
 y_t = []
 
-fig, (ax0,ax1) = plt.subplots(1,2,gridspec_kw={'width_ratios': [2, 1]})
+errors = []
+frames = []
+
+fig, axs = plt.subplots(ncols=2, nrows=2,gridspec_kw={
+                           'width_ratios': [1, 2],
+                           'height_ratios': [2, 1]})
+gs = axs[0, 0].get_gridspec()
+# remove the underlying axes
+for ax in axs[0:, -1]:
+    ax.remove()
+axbig = fig.add_subplot(gs[0:, -1])
+
 
 image0 = cv2.imread("D:/Others/Projects/VO-SLAM/101/image_0.jpg")
 #create image axes
-im1 = ax1.imshow(image0)
+im1 = axs[0][0].imshow(image0)
 
 def animate(i):
     path = "D:/Others/Projects/VO-SLAM/101/image_"+str(i)+".jpg"
@@ -68,22 +79,33 @@ def animate(i):
 
         x_t.append(vo.groundtruth_t[-1][1])
         y_t.append(vo.groundtruth_t[-1][0])
-        ax0.cla()
+        
+        errors.append(vo.errors[-1])
+        frames.append(i)
+        
+        axbig.cla()
 
-        ax0.plot(x, y ,label='VO+MO Est')
-        ax0.plot(x_t, y_t, '--',label='Ground Truth - MO')
-        ax0.set_title('Pose Estimation')
-        ax0.set_xlabel('X-axis')
-        ax0.set_ylabel('Y-axis')
-        ax0.legend(loc='upper left')
+        axbig.plot(x, y ,color='g',linewidth=2,label='MVO-SLAM Est')
+        axbig.plot(x_t, y_t,'--',color='b',linewidth=2,label='Ground Truth Est')
+        axbig.set_title('Pose Estimation ( With Dynamic alpha + Error threshold )')
+        axbig.set_xlabel('X-axis ( meter )')
+        axbig.set_ylabel('Z-axis ( meter )')
+        axbig.legend(loc='upper left')
 
-        ax1.set_title('Frames')
-        ax1.grid(False)
+        axs[1][0].plot(frames, errors,color='r',label='Error')
+        axs[1][0].set_xlabel('Frame')
+        axs[1][0].set_ylabel('Error ( meter )')
+        axs[1][0].set_ylim([0,0.1])
+
+
+        axs[0][0].set_title('Frames')
+        axs[0][0].grid(False)
+        axs[0][0].set_yticklabels([])
+        axs[0][0].set_xticklabels([])
         plt.tight_layout()
 
-anim = FuncAnimation( plt.gcf(), animate, frames = 500, interval=50, repeat = False )
+anim = FuncAnimation( plt.gcf(), animate, frames = 500, interval=50,repeat = False )
 
 plt.tight_layout()
 plt.show()
  
-
