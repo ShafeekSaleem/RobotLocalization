@@ -48,3 +48,4 @@ This script contains all other necessary functions to carry on the task.
 4. Run the main.py file
 5. Localize :)
 
+This implementation outputs a simple simulation using only matplotlib.
