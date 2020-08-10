@@ -13,6 +13,10 @@ For each frame, key-points and descriptors are detected using [ORB](https://docs
 
 At each step **t**, main_vo.py estimates the current camera pose **C_t** with respect to the previous one **C_t**. For this, The inter-frame pose estimation returns **R_{k-1,k},t_{k-1,k}** with **||t_{k-1,k}||=1**. With this very basic approach, a ground truth is used in order to recover a correct inter-frame scale **s** and estimate a valid trajectory by composing **C_k = C_{k-1} * [R_{k-1,k}, s t_{k-1,k}]**. This script is a first start to understand the basics of inter-frame feature tracking and camera pose estimation.
 
+## Error refinement
+At each frame, initial pose will be set to the estimation from motion odometry. Then, visual odometry estimation will be calculated and the error between these two estimations will be measured. Then the error will be added to the initial estimation scaled by the alpha parameter. The alpha parameter decides how much of the information from visual odometry will be added to the initial estimation.
+
+
 ## feature_orb2D.py:
 Given an image, detects features and returns the detected key points and respective descriptors.
 
