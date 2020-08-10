@@ -41,3 +41,10 @@ Ex: alpha parameter, number of features to detect
 ### utils.py
 This script contains all other necessary functions to carry on the task.
 
+## How to use:
+1. Clone the repo.
+2. Change the values in the parameters.py file according to your specifications.
+3. Create a visual odometry object in main.py, set the desired parameters and the type of the dataset.
+4. Run the main.py file
+5. Localize :)
+
