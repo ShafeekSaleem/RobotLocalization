@@ -19,25 +19,25 @@ At each frame, initial pose will be set to the estimation from motion odometry. 
 ![Error refinement](https://github.com/ShafeekSaleem/RobotLocalization/blob/master/src/Images/illus.png)
 
 ## Scripts Explained : 
-## feature_orb2D.py:
+### feature_orb2D.py
 Given an image, detects features and returns the detected key points and respective descriptors.
 
-## feature_matcher.py
+### feature_matcher.py
 Does inter frame feature matching using either FLANN or Brute Force ([BF](https://docs.opencv.org/3.4/d3/da1/classcv_1_1BFMatcher.html)) algorithm. 
 
-## feature_tracker.py
+### feature_tracker.py
 Using both feature_orb2D.py and feature_matcher.py, implements inter frame feature tracking and keeps track of the parameters needed for the next phase.
 
-## camera.py
+### camera.py
 Creates an camera object with the user defined intrinsic parameters set. Conatins basic camera callibration functions and reprojection functions to carry out the necessary processings related to the camera that the user uses.
 
-## dataset.py
+### dataset.py
 Provides the data to the Visualodometry object. It can be set to a live stream from a ros topic or an already stored datafile on the local machine. User have to specify which type of dataset they are using while creating a Visual Odometry object.
 
-## parameters.py
+### parameters.py
 This script contains all the parameters that were used in the overall model. To change the parameters of the model, the user only has to modify the values in this script.
 Ex: alpha parameter, number of features to detect
 
-## utils.py
+### utils.py
 This script contains all other necessary functions to carry on the task.
 
