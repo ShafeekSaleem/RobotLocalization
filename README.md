@@ -15,7 +15,7 @@ At each step **t**, main_vo.py estimates the current camera pose **C_t** with re
 
 ## Error refinement
 At each frame, initial pose will be set to the estimation from motion odometry. Then, visual odometry estimation will be calculated and the error between these two estimations will be measured. Then the error will be added to the initial estimation scaled by the alpha parameter. The alpha parameter decides how much of the information from visual odometry will be added to the initial estimation.
-
+![Error refinement](https://github.com/ShafeekSaleem/RobotLocalization/blob/master/src/Images/illus.jpg)
 
 ## feature_orb2D.py:
 Given an image, detects features and returns the detected key points and respective descriptors.
